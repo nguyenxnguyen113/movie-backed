@@ -5,14 +5,8 @@ const { default: slugify } = require("slugify");
 
 exports.createProduct = (req, res) => {
   // res.status(200).json({file: req.file, body: req.body})
-  const { name, ename, description, category, url } = req.body;
-  let img = ''
-  let largerImg = ''
-  console.log(req.files[0])
-  if (req.files.length > 0) {
-    img = req.files[0].filename
-    largerImg = req.files[1].filename
-  }
+  const { name, ename, description, category, url, img, largerImg } = req.body;
+
   const product = new Product({
     name: name,
     slug: slugify(name),
@@ -32,6 +26,17 @@ exports.createProduct = (req, res) => {
     }
     if (product) {
       return res.status(201).json({ product });
+    }
+  });
+};
+
+exports.getProduct = (req, res) => {
+  Product.find({}).exec((error, products) => {
+    if (error) {
+      return res.status(400).json({ error });
+    }
+    if (products) {
+      return res.status(200).json({ products });
     }
   });
 };
