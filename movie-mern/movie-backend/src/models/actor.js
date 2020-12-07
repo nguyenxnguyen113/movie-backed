@@ -9,6 +9,9 @@ const actorSchema = new mongoose.Schema({
         type: String,
         trim: true,
     },
+    region: {
+        type: String
+    },
     slug: {
         type: String,
         unique: true,

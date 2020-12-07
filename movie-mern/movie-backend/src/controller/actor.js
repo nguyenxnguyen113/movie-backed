@@ -6,6 +6,7 @@ exports.addActor = (req, res) => {
   const actorObj = {
     name: req.body.name,
     avartar: req.body.avartar,
+    region: req.body.region,
     slug: `${slugify(req.body.name)}-${shortid.generate()}`,
   };
 
