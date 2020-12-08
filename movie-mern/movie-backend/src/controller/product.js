@@ -5,7 +5,7 @@ const { default: slugify } = require("slugify");
 
 exports.createProduct = (req, res) => {
   // res.status(200).json({file: req.file, body: req.body})
-  const { name, ename, description, category, url, img, largerImg } = req.body;
+  const { name, ename, description, category, url, img, largerImg, actor, country } = req.body;
 
   const product = new Product({
     name: name,
@@ -16,8 +16,14 @@ exports.createProduct = (req, res) => {
     description,
     url,
     categories: [
-        { category }
+      { category }
     ],
+    actors: [
+      { actor }
+    ],
+    countries: [
+      { country }
+    ]
   });
 
   product.save((error, product) => {

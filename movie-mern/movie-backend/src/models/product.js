@@ -42,6 +42,22 @@ const productSchema = new mongoose.Schema({
             }
         }
     ],
+    actors: [
+        {
+            actor: {
+                type: mongoose.Schema.Types.ObjectId, ref: 'actor',
+                required: true,
+            }
+        }
+    ],
+    countries: [
+        {
+            country: {
+                type: mongoose.Schema.Types.ObjectId, ref: 'country',
+                required: true,
+            }
+        }
+    ],
     img: {
         type: String
     },
