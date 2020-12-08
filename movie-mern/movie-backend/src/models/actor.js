@@ -12,6 +12,9 @@ const actorSchema = new mongoose.Schema({
     region: {
         type: String
     },
+    age: {
+        type: String
+    },
     slug: {
         type: String,
         unique: true,
