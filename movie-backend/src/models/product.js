@@ -20,6 +20,10 @@ const productSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    year: {
+        type: Number,
+        trim: true,
+    },
     url: {
         type: String,
         required: true,
@@ -34,30 +38,9 @@ const productSchema = new mongoose.Schema({
             comment: String
         }
     ],
-    categories: [
-        {
-            category: {
-                type: mongoose.Schema.Types.ObjectId, ref: 'category',
-                required: true,
-            }
-        }
-    ],
-    actors: [
-        {
-            actor: {
-                type: mongoose.Schema.Types.ObjectId, ref: 'actor',
-                required: true,
-            }
-        }
-    ],
-    countries: [
-        {
-            country: {
-                type: mongoose.Schema.Types.ObjectId, ref: 'country',
-                required: true,
-            }
-        }
-    ],
+    categories: [{ type : mongoose.Schema.Types.ObjectId, ref: 'category' }],
+    actors: [{ type : mongoose.Schema.Types.ObjectId, ref: 'actor' }],
+    countries: [{ type : mongoose.Schema.Types.ObjectId, ref: 'country' }],
     img: {
         type: String
     },
