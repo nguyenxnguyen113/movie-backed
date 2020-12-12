@@ -20,6 +20,9 @@ const actorSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
+    avat: {
+        type: String,
+    }
 }, {timestamps: true})
 
 module.exports = mongoose.model('actor', actorSchema)

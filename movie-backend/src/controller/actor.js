@@ -8,6 +8,7 @@ exports.addActor = (req, res) => {
     avartar: req.body.avartar,
     region: req.body.region,
     age: req.body.age,
+    avatar: req.body.avata,
     slug: `${slugify(req.body.name)}-${shortid.generate()}`,
   };
 
