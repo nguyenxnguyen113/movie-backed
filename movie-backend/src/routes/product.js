@@ -1,7 +1,7 @@
 const express = require("express");
 // const {  } = require('../controller/category')
 const { requireSignin, adminMiddleware } = require("../common-middleware");
-const { createProduct, getProduct } = require("../controller/product");
+const { createProduct, getProduct, deleteProductById, getProductById, updateProductById } = require("../controller/product");
 const multer = require("multer");
 const shortid = require("shortid");
 const path = require("path");
@@ -26,5 +26,8 @@ router.post(
   createProduct
 );
 router.get('/product/getproduct', getProduct)
+router.delete("/product/deleteProductById", requireSignin, adminMiddleware, deleteProductById);
+router.get("/product/getProductById/", requireSignin, adminMiddleware, getProductById);
+router.post("/product/editProductById/:id", requireSignin, adminMiddleware, updateProductById);
 
 module.exports = router;

@@ -30,3 +30,17 @@ exports.getCountry = (req, res) => {
     }
   });
 };
+
+exports.deleteCountryById = (req, res) => {
+  const { countryId } = req.body.payload;
+  if (countryId) {
+    Country.deleteOne({ _id: countryId }).exec((error, result) => {
+      if (error) return res.status(400).json({ error });
+      if (result) {
+        res.status(202).json({ result });
+      }
+    });
+  } else {
+    res.status(400).json({ error: "Params required" });
+  }
+};
