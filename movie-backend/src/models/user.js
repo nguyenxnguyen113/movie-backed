@@ -1,19 +1,19 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const userSchema = new mongoose.Schema({
-    firstName: {
-        type: String,
-        required: true,
-        min:3,
-        max:20
-    },
-    lastName: {
-        type: String,
-        required: true,
-        min:3,
-        max:20
-    },
-    username: {
+    // firstName: {
+    //     type: String,
+       
+    //     min:3,
+    //     max:20
+    // },
+    // lastName: {
+    //     type: String,
+        
+    //     min:3,
+    //     max:20
+    // },
+    userName: {
         type: String,
         required: true,
         trim: true,
@@ -37,6 +37,11 @@ const userSchema = new mongoose.Schema({
         role: ['admin', 'user'],
         default: 'user'
     },
+    avatar: {
+        type: String,
+        default: "default"
+    },
+    watchList: [{ type : mongoose.Schema.Types.ObjectId, ref: 'film' }],
     contactNumber: {type: String},
     profilePicture: {type: String}
 }, {timestamps: true})

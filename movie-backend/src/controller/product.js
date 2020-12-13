@@ -3,10 +3,12 @@ const mongoose = require('mongoose')
 const shortid = require("shortid");
 const { default: slugify } = require("slugify");
 const { Mongoose } = require("mongoose");
+const actor = require("../models/actor");
+const product = require("../models/product");
 
 exports.createProduct = (req, res) => {
   // res.status(200).json({file: req.file, body: req.body})
-  const { name, ename, description, categories, actors, countries, url, img, largerImg, year } = req.body;
+  const { name, ename, description, categories, actors, countries, url, img, largerImg, year, vote } = req.body;
 
   const product = new Product({
     name: name,
@@ -19,7 +21,8 @@ exports.createProduct = (req, res) => {
     year,
     categories,
     actors,
-    countries
+    countries,
+    vote
   });
 
   product.save((error, product) => {
@@ -42,14 +45,90 @@ exports.getProduct = (req, res) => {
     }
   });
 };
+const voteAverage = (product) => {
+  const newArr = []
+  console.log(product[0])
+  for (let i = 0; i < product.length; i++) {
+    let total = 0
+    for (let j = 0; j < product[i].votes.length; j++) {
+      total += product[i].votes[j].vote      
+    }
+    let averageVote = total/product[i].votes.length
+    console.log(averageVote)
+    const a = product[i]
+    a['averageVote']= averageVote
+    newArr.push(a)
+  }
+  return newArr
+}
+exports.getProductByQuery = async (req, res) => {
+  const { limit, page, actor, category, year, sort } = req.query
+  const arrProduct = []
+  if (sort == "date") {
+    arrProduct.push({
+      $sort: {
+        cratedAt: -1
+      }
+    })
+  }
+  if (sort == "vote") {
+    arrProduct.push({
+      $sort: {
+        cratedAt: -1
+      }
+    })
+  }
+  if (page && limit) {
+    arrProduct.push({ $skip: limit * (page - 1) })
+  }
+  if (limit) {
+    arrProduct.push({ $limit: parseInt(limit) })
+  }
+  if (actor) {
+    arrProduct.push({ $match: { actors: mongoose.Types.ObjectId(actor) } })
+  }
+  if (category) {
+    arrProduct.push({ $match: { categories: mongoose.Types.ObjectId(category) } })
+  }
+  if (year) {
+    arrProduct.push({ $match: { year: parseInt(year) } })
+  }
+  console.log(arrProduct)
+  await Product.aggregate(arrProduct).exec((err, products) => {
+    if (err) {
+      return res.status(400).json({ err: err })
+    }
+    if (products) {
+      console.log(voteAverage(products))
+      return res.status(200).json({ product: voteAverage(products) })
+    }
+  })
+}
+
+exports.vote = (req, res) => {
+  const { idFilm, idUser, vote } = req.query
+  Product.updateOne(
+    { _id: idFilm },
+    { $push: { votes: {userId: idUser, vote: vote} } }
+  ).exec((err, result) => {
+    if (err) {
+      return res.status(400).json({err: err})
+    }
+    if (result) {
+      return res.status(200).json({result: result})
+    }
+  })
+  console.log(req.query)
+}
+
 exports.getProductById = (req, res) => {
-  const id = mongoose.Types.ObjectId(req.body.id)
+  const id = mongoose.Types.ObjectId(req.query.id)
   Product.aggregate(
     [
-      { 
+      {
         $match: {
           _id: id
-        } 
+        }
       },
       {
         $lookup: {
@@ -90,7 +169,7 @@ exports.getProductById = (req, res) => {
         }
       }
     ])
-    .then(product => res.json(product))
+    .then(product => res.json(product[0]))
     .catch(err => res.status(400).json('Error: ' + err));
 };
 exports.deleteProductById = (req, res) => {

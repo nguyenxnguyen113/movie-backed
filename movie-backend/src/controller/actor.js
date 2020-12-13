@@ -4,11 +4,11 @@ const shortid = require("shortid");
 
 exports.addActor = (req, res) => {
   const actorObj = {
-    name: req.body.name,
+    username: req.body.name,
     avartar: req.body.avartar,
     region: req.body.region,
     age: req.body.age,
-    avatar: req.body.avata,
+    avatar: req.body.avatar,
     slug: `${slugify(req.body.name)}-${shortid.generate()}`,
   };
 

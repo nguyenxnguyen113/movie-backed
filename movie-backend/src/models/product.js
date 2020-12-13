@@ -38,6 +38,14 @@ const productSchema = new mongoose.Schema({
             comment: String
         }
     ],
+    votes: [
+        {
+            userId: {
+                type: mongoose.Schema.Types.ObjectId,
+            },
+            vote : Number
+        },
+    ],
     categories: [{ type : mongoose.Schema.Types.ObjectId, ref: 'category' }],
     actors: [{ type : mongoose.Schema.Types.ObjectId, ref: 'actor' }],
     countries: [{ type : mongoose.Schema.Types.ObjectId, ref: 'country' }],

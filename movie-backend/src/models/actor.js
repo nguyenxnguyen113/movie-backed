@@ -20,7 +20,7 @@ const actorSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
-    avat: {
+    avatar: {
         type: String,
     }
 }, {timestamps: true})
