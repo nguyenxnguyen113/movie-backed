@@ -51,12 +51,12 @@ const voteAverage = (product) => {
   for (let i = 0; i < product.length; i++) {
     let total = 0
     for (let j = 0; j < product[i].votes.length; j++) {
-      total += product[i].votes[j].vote      
+      total += product[i].votes[j].vote
     }
-    let averageVote = total/product[i].votes.length
+    let averageVote = total / product[i].votes.length
     console.log(averageVote)
     const a = product[i]
-    a['averageVote']= averageVote
+    a['averageVote'] = averageVote
     newArr.push(a)
   }
   return newArr
@@ -84,6 +84,39 @@ exports.getProductByQuery = async (req, res) => {
   if (limit) {
     arrProduct.push({ $limit: parseInt(limit) })
   }
+  let getAverageVote = [
+    {
+      $unwind: "$votes"
+    },
+    {
+      $group: {
+        _id: "$_id",
+        categories: { "$first": "$categories" },
+        country: { "$first": "$countries" },
+        actors: { "$first": "$actors" },
+        name: { "$first": "$name" },
+        ename: { "$first": "$ename" },
+        slug: { "$first": "$slug" },
+        img: { "$first": "$img" },
+        largerImg: { "$first": "$largerImg" },
+        description: { "$first": "$description" },
+        url: { "$first": "$url" },
+        comments: { "$first": "$comments" },
+        createdAt: { "$first": "$createdAt" },
+        updatedAt: { "$first": "$updatedAt" },
+        voteLength: { "$sum": 1 },
+        sumVotes: { "$sum": "$votes.vote" },
+      }
+    },
+    {
+      $addFields: {
+        "averageVote": {
+          "$divide": ["$sumVotes", "$voteLength"]
+        }
+      }
+    }
+  ]
+  arrProduct.push(...getAverageVote)
   if (actor) {
     arrProduct.push({ $match: { actors: mongoose.Types.ObjectId(actor) } })
   }
@@ -99,26 +132,67 @@ exports.getProductByQuery = async (req, res) => {
       return res.status(400).json({ err: err })
     }
     if (products) {
-      console.log(voteAverage(products))
-      return res.status(200).json({ product: voteAverage(products) })
+      // console.log(voteAverage(products))
+      return res.status(200).json({ product: products })
     }
   })
 }
 
 exports.vote = (req, res) => {
-  const { idFilm, idUser, vote } = req.query
+  const { idFilm, idUser, vote } = req.body
+  // Product.findById(
+  //   { _id: mongoose.Types.ObjectId(idFilm) }
+  // ).exec((err, product) => {
+  //   if (err) {
+  //     return res.status(400).json({err: err})
+  //   }
+  //   if (product) {
+  //     for(let i = 0; i<product.votes.length; i++) {
+        
+  //       if (product.votes[i].userId == idUser) {
+          
+  //         Product.updateOne(
+  //           { _id: mongoose.Types.ObjectId(idFilm), "votes.userId": idUser},
+  //           { $set: { "votes.vote": vote } }
+  //         ).exec((err, result) => {
+  //           if (err) {
+  //             return res.status(400).json({err: err})
+  //           }
+  //           if (result) {
+  //             console.log(result)
+  //             result.save()
+  //             return res.status(200).json({result: result})
+  //           }
+  //         })
+  //       }
+  //     }
+  //     return res.status(200).json({result: product})
+  //   }
+  // })
+  // Product.updateOne(
+  //   { _id: mongoose.Types.ObjectId(idFilm) },
+  //   { $push: { votes: {userId: idUser, vote: vote} } }
+  // ).exec((err, result) => {
+  //   if (err) {
+  //     return res.status(400).json({err: err})
+  //   }
+  //   if (result) {
+  //     console.log(result)
+  //     return res.status(200).json({result: result})
+  //   }
+  // })
   Product.updateOne(
-    { _id: idFilm },
-    { $push: { votes: {userId: idUser, vote: vote} } }
+    { _id: mongoose.Types.ObjectId(idFilm), "votes.0.userId": mongoose.Types.ObjectId(idUser)},
+    { $set: { "votes.0.vote": vote } }
   ).exec((err, result) => {
     if (err) {
       return res.status(400).json({err: err})
     }
     if (result) {
+      console.log(result)
       return res.status(200).json({result: result})
     }
   })
-  console.log(req.query)
 }
 
 exports.getProductById = (req, res) => {
