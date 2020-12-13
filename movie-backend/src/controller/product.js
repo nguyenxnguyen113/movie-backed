@@ -205,3 +205,27 @@ exports.updateProductById = (req, res) => {
         .catch(err => res.status(400).json('Error: ' + err));
     }).catch(err => res.status(400).json('Error: ' + err));
 }
+
+exports.createComment = (req,res)=>{
+    const {id,userId,comment} = req.body
+    console.log(req.body);
+    product.updateOne(
+      {
+        _id:mongoose.Types.ObjectId(id)
+      },
+      {
+        $push:{
+          comments:{
+            userId:userId,
+            comment:comment
+          }
+        }
+      }
+    ).exec((err,product)=>{
+        if(err) res.status(500).json('Internal server error')
+        else res.status(200).json('comment successfully')
+    })
+}
+exports.getComment = (req,res)=>{
+    
+}
