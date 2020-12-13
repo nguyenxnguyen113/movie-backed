@@ -140,57 +140,41 @@ exports.getProductByQuery = async (req, res) => {
 
 exports.vote = (req, res) => {
   const { idFilm, idUser, vote } = req.body
-  // Product.findById(
-  //   { _id: mongoose.Types.ObjectId(idFilm) }
-  // ).exec((err, product) => {
-  //   if (err) {
-  //     return res.status(400).json({err: err})
-  //   }
-  //   if (product) {
-  //     for(let i = 0; i<product.votes.length; i++) {
-        
-  //       if (product.votes[i].userId == idUser) {
-          
-  //         Product.updateOne(
-  //           { _id: mongoose.Types.ObjectId(idFilm), "votes.userId": idUser},
-  //           { $set: { "votes.vote": vote } }
-  //         ).exec((err, result) => {
-  //           if (err) {
-  //             return res.status(400).json({err: err})
-  //           }
-  //           if (result) {
-  //             console.log(result)
-  //             result.save()
-  //             return res.status(200).json({result: result})
-  //           }
-  //         })
-  //       }
-  //     }
-  //     return res.status(200).json({result: product})
-  //   }
-  // })
-  // Product.updateOne(
-  //   { _id: mongoose.Types.ObjectId(idFilm) },
-  //   { $push: { votes: {userId: idUser, vote: vote} } }
-  // ).exec((err, result) => {
-  //   if (err) {
-  //     return res.status(400).json({err: err})
-  //   }
-  //   if (result) {
-  //     console.log(result)
-  //     return res.status(200).json({result: result})
-  //   }
-  // })
-  Product.updateOne(
-    { _id: mongoose.Types.ObjectId(idFilm), "votes.0.userId": mongoose.Types.ObjectId(idUser)},
-    { $set: { "votes.0.vote": vote } }
-  ).exec((err, result) => {
-    if (err) {
-      return res.status(400).json({err: err})
+  Product.update(
+    {
+      _id: mongoose.Types.ObjectId(idFilm),
+      votes: {
+        $elemMatch: {
+          userId: mongoose.Types.ObjectId(idUser)
+        }
+      }
+    }, {
+    $set: {
+      "votes.$.vote": vote
     }
-    if (result) {
-      console.log(result)
-      return res.status(200).json({result: result})
+  }
+  ).exec((err, product) => {
+    if (err) {
+      console.log(err);
+      return res.status(400).json({ err: err })
+    }
+    if (product) {
+      console.log(product.n);
+      if (product.n <= 0) {
+        Product.updateOne(
+          { _id: mongoose.Types.ObjectId(idFilm) },
+          { $push: { votes: { userId: idUser, vote: vote } } }
+        ).exec((err, result) => {
+          if (err) {
+            return res.status(400).json({ err: err })
+          }
+          if (result) {
+            console.log(result)
+            return res.status(200).json({ message: "vote successfully" })
+          }
+        })
+      }
+      return res.status(200).json({message:"update vote successfully"})
     }
   })
 }
@@ -280,26 +264,26 @@ exports.updateProductById = (req, res) => {
     }).catch(err => res.status(400).json('Error: ' + err));
 }
 
-exports.createComment = (req,res)=>{
-    const {id,userId,comment} = req.body
-    console.log(req.body);
-    product.updateOne(
-      {
-        _id:mongoose.Types.ObjectId(id)
-      },
-      {
-        $push:{
-          comments:{
-            userId:userId,
-            comment:comment
-          }
+exports.createComment = (req, res) => {
+  const { id, userId, comment } = req.body
+  console.log(req.body);
+  product.updateOne(
+    {
+      _id: mongoose.Types.ObjectId(id)
+    },
+    {
+      $push: {
+        comments: {
+          userId: userId,
+          comment: comment
         }
       }
-    ).exec((err,product)=>{
-        if(err) res.status(500).json('Internal server error')
-        else res.status(200).json('comment successfully')
-    })
+    }
+  ).exec((err, product) => {
+    if (err) res.status(500).json('Internal server error')
+    else res.status(200).json('comment successfully')
+  })
 }
-exports.getComment = (req,res)=>{
-    
+exports.getComment = (req, res) => {
+
 }
