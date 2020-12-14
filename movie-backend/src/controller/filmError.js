@@ -28,10 +28,10 @@ exports.createFilmError = (req, res) => {
 
 exports.getFilmError = async (req, res) => {
     const { page, limit } = req.query
-    const all = await filmError.find({}).count().exec()
-    console.log(all);
+    console.log(req.body);
+    const all = await filmError.find({}).countDocuments()
+    const pipleline = []
     if (page || limit) {
-        const pipleline = []
         if (limit) {
             pipleline.push({
                 $limit: parseInt(limit)
@@ -57,7 +57,6 @@ exports.getFilmError = async (req, res) => {
                 }
             }
         ])
-        console.log(pipleline);
         filmError.aggregate(pipleline).exec((err, film) => {
             if (err) res.status(500).json('server eror:'+err)
             else res.status(200).json({
@@ -67,12 +66,42 @@ exports.getFilmError = async (req, res) => {
         })
     }
     else {
-        filmError.find({}).exec((err,films)=>{
-            if(err) res.status(500).json("server error: "+err)
+        pipleline.push(...[
+            {
+                $lookup: {
+                    from: 'products',
+                    localField: 'filmId',
+                    foreignField: '_id',
+                    as: 'film'
+                }
+            },
+            {
+                $project:{
+                    "film":1
+                }
+            }
+        ])
+        filmError.aggregate(pipleline).exec((err, film) => {
+            if (err) res.status(500).json('server eror:'+err)
             else res.status(200).json({
-                total:all,
-                data:films
-            })
+                total: all,
+                data:film
+            });
         })
+    }
+}
+
+exports.removeFilmError = (req,res) => {
+    const { id } = req.body;
+    console.log(id);
+    if (id) {
+        filmError.deleteOne({ _id: mongoose.Types.ObjectId(id) }).exec((error, result) => {
+            if (error) return res.status(400).json({ error });
+            if (result) {
+                res.status(202).json({ result });
+            }
+        });
+    } else {
+        res.status(400).json({ error: "Params required" });
     }
 }
