@@ -8,6 +8,7 @@ const categoryRoutes = require("./routes/category");
 const productRoutes = require("./routes/product");
 const countryRoutes = require("./routes/country")
 const actorRoutes = require("./routes/actor")
+const filmError = require('./routes/filmError')
 // const initialDataRoutes = require("./routes/admin/intitialData");
 const cors = require('cors');
 
@@ -33,6 +34,7 @@ app.use("/api", categoryRoutes);
 app.use("/api", productRoutes);
 app.use("/api", countryRoutes);
 app.use("/api", actorRoutes);
+app.use("/api", filmError)
 // app.use("/api", initialDataRoutes);
 
 app.listen(process.env.PORT, () => {

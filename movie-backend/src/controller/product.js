@@ -8,7 +8,7 @@ const product = require("../models/product");
 
 exports.createProduct = (req, res) => {
   // res.status(200).json({file: req.file, body: req.body})
-  const { name, ename, description, categories, actors, countries, url, img, largerImg, year, vote } = req.body;
+  const { name, ename, description, categories, actors, countries, url,streamTapeId, img, largerImg, year, vote } = req.body;
 
   const product = new Product({
     name: name,
@@ -18,6 +18,7 @@ exports.createProduct = (req, res) => {
     largerImg,
     description,
     url,
+    streamTapeId,
     year,
     categories,
     actors,
@@ -35,34 +36,23 @@ exports.createProduct = (req, res) => {
   });
 };
 
-exports.getProduct = (req, res) => {
+exports.getProduct = async (req, res) => {
+  const all = await Product.find({}).countDocuments()
+  console.log(all);
   Product.find({}).exec((error, products) => {
     if (error) {
       return res.status(400).json({ error });
     }
     if (products) {
-      return res.status(200).json({ products });
+      return res.status(200).json({ total:all,products });
     }
   });
 };
-const voteAverage = (product) => {
-  const newArr = []
-  console.log(product[0])
-  for (let i = 0; i < product.length; i++) {
-    let total = 0
-    for (let j = 0; j < product[i].votes.length; j++) {
-      total += product[i].votes[j].vote
-    }
-    let averageVote = total / product[i].votes.length
-    console.log(averageVote)
-    const a = product[i]
-    a['averageVote'] = averageVote
-    newArr.push(a)
-  }
-  return newArr
-}
+
 exports.getProductByQuery = async (req, res) => {
-  const { limit, page, actor, category, year, sort } = req.query
+  const { limit, page, actor, category, year, sort } = req.query;
+  const all = await Product.find({}).count()
+  console.log(all);
   const arrProduct = []
   if (sort == "date") {
     arrProduct.push({
@@ -101,6 +91,7 @@ exports.getProductByQuery = async (req, res) => {
         largerImg: { "$first": "$largerImg" },
         description: { "$first": "$description" },
         url: { "$first": "$url" },
+        streamTapeId:{"$first":"$streamTapeId"},
         comments: { "$first": "$comments" },
         createdAt: { "$first": "$createdAt" },
         updatedAt: { "$first": "$updatedAt" },
@@ -116,7 +107,6 @@ exports.getProductByQuery = async (req, res) => {
       }
     }
   ]
-  arrProduct.push(...getAverageVote)
   if (actor) {
     arrProduct.push({ $match: { actors: mongoose.Types.ObjectId(actor) } })
   }
@@ -126,6 +116,7 @@ exports.getProductByQuery = async (req, res) => {
   if (year) {
     arrProduct.push({ $match: { year: parseInt(year) } })
   }
+  arrProduct.push(...getAverageVote)
   console.log(arrProduct)
   await Product.aggregate(arrProduct).exec((err, products) => {
     if (err) {
@@ -133,7 +124,7 @@ exports.getProductByQuery = async (req, res) => {
     }
     if (products) {
       // console.log(voteAverage(products))
-      return res.status(200).json({ product: products })
+      return res.status(200).json({ total:all,product: products })
     }
   })
 }
@@ -180,7 +171,7 @@ exports.vote = (req, res) => {
 }
 
 exports.getProductById = (req, res) => {
-  const id = mongoose.Types.ObjectId(req.query.id)
+  const id = mongoose.Types.ObjectId(req.params.id)
   Product.aggregate(
     [
       {
@@ -255,6 +246,7 @@ exports.updateProductById = (req, res) => {
       product.actors = req.body.actors;
       product.countries = req.body.countries;
       product.url = req.body.url;
+      product.streamTapeId = req.streamTapeId;
       product.img = req.body.img;
       product.largerImg = req.body.largerImg;
       product.year = req.body.year;
@@ -285,5 +277,58 @@ exports.createComment = (req, res) => {
   })
 }
 exports.getComment = (req, res) => {
-
+  const {id,limit} = req.query;
+  console.log(id);
+  const pipleline = [
+    {
+      $match:{
+        _id:mongoose.Types.ObjectId(id)
+      }
+    },
+    {
+      $unwind: {
+        path:"$comments"
+      }
+    },
+    {
+      $lookup:{
+        from:"users",
+        localField:"comments.userId",
+        foreignField:"_id",
+        as:'comments.user'
+      }
+    },
+    {
+      $project:{
+        "comments":1
+      }
+    },
+    {
+      $group:{
+        _id:"$_id",
+        "comments":{
+          "$push":"$comments"
+        }
+      }
+    },
+    {
+      $project:{
+        "comments.user.hash_password":0,
+        "comments.userId":0
+      }
+    }
+  ]
+  pipleline.splice(2,0,{
+    $limit: parseInt(limit)
+  })
+  Product.aggregate(pipleline).exec((err,comment)=>{
+    if(err) res.status(500).json({message:"server error"})
+    else {
+      if(comment.length>0){
+        console.log(comment);
+        res.status(200).json({comments: comment[0].comments})
+      }
+      else res.status(400).json({message:"id is not correct"})
+    }
+  })
 }

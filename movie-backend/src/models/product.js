@@ -29,6 +29,11 @@ const productSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    streamTapeId:{
+        type:String,
+        required:true,
+        trim:true
+    },
     comments: [
         {
             userId: {

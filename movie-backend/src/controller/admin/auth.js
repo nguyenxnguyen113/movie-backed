@@ -10,22 +10,25 @@ exports.signup = (req, res) => {
                 message: "Admin already registered",
             });
 
-        const { firstName, lastName, email, password } = req.body;
+        const { userName, email, password } = req.body;
+        console.log(email);
+        console.log(password);
+        console.log(userName);
         const hash_password = await bcrypt.hash(password, 10);
         const _user = new User({
-            firstName,
-            lastName,
+            userName:userName,
             email,
             hash_password,
-            username: shortid.generate(),
             role: "admin",
         });
-
+        console.log(_user);
         _user.save((error, data) => {
             if (error) {
-                return res.status(400).json({
-                    message: "Something went wrong",
-                });
+                console.log(error);
+                // return res.status(400).json({
+                //     err:error,
+                //     message: "Something went wrong",
+                // });
             }
 
             if (data) {

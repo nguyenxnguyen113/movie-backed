@@ -25,9 +25,9 @@ router.post(
   adminMiddleware,
   createProduct
 );
-router.get('/product/getproduct', getProduct)
+router.get('/product/getProduct', getProduct)
 router.delete("/product/deleteProductById", requireSignin, adminMiddleware, deleteProductById);
-router.get("/product/getProductById/", getProductById);
+router.get("/product/getProductById/:id", getProductById);
 router.post("/product/editProductById/:id", requireSignin, adminMiddleware, updateProductById);
 router.post("/product/getProductByQuery/", getProductByQuery);
 router.post("/product/vote", vote);
