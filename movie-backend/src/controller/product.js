@@ -35,7 +35,17 @@ exports.createProduct = (req, res) => {
     }
   });
 };
+exports.getAllProduct = async (req, res) => {
 
+  Product.find({}).exec((error, products) => {
+    if (error) {
+      return res.status(400).json({ error });
+    }
+    if (products) {
+      return res.status(200).json({ products });
+    }
+  });
+};
 exports.getProduct = async (req, res) => {
   const PAGE_SIZE = 3;
   const page = parseInt(req.query.page || "0");

@@ -19,7 +19,17 @@ exports.addCategory = (req, res) => {
     }
   });
 };
+exports.getAllCategory = async (req, res) => {
 
+  Category.find({}).exec((error, categories) => {
+    if (error) {
+      return res.status(400).json({ error });
+    }
+    if (categories) {
+      return res.status(200).json({ categories });
+    }
+  });
+};
 exports.getCategory = async (req, res) => {
   const PAGE_SIZE = 3;
   const page = parseInt(req.query.page || "0");

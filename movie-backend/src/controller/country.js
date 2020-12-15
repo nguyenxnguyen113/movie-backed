@@ -21,6 +21,18 @@ exports.addCountry = (req, res) => {
   });
 };
 
+exports.getAllCountry = async (req, res) => {
+
+  Country.find({}).exec((error, countries) => {
+    if (error) {
+      return res.status(400).json({ error });
+    }
+    if (countries) {
+      return res.status(200).json({ countries });
+    }
+  });
+};
+
 exports.getCountry = async (req, res) => {
   const PAGE_SIZE = 3;
   const page = parseInt(req.query.page || "0");
