@@ -12,7 +12,7 @@ exports.createProduct = (req, res) => {
 
   const product = new Product({
     name: name,
-    slug: slugify(name),
+    slug: slugify(name.toLowerCase()),
     ename,
     img,
     largerImg,
@@ -385,6 +385,12 @@ exports.getComment = (req, res) => {
   })
 }
 
-exports.searchFilm = (res,req)=>{
-    console.log(req.body);
+exports.searchFilm = (req,res)=>{
+  console.log(req.body);
+  let regex = new RegExp(slugify(req.body.data))
+  console.log(regex);
+  product.find({'slug':regex}).exec((err,film)=>{
+    if(err) res.status(500).json({message:"server error"})
+    else res.status(200).json(film)
+  })
 }
