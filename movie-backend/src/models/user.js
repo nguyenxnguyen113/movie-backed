@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
     },
     avatar: {
         type: String,
-        default: "default"
+        default: "https://firebasestorage.googleapis.com/v0/b/react-upload-image-d14cb.appspot.com/o/images%2Ficon-user.svg?alt=media&token=a31c548c-bc91-4cee-b861-80ecf0128d58"
     },
     watchList: [{ type : mongoose.Schema.Types.ObjectId, ref: 'film' }],
     contactNumber: {type: String},

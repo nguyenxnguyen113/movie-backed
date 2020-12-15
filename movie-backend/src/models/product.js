@@ -43,14 +43,16 @@ const productSchema = new mongoose.Schema({
             comment: String
         }
     ],
-    votes: [
-        {
-            userId: {
-                type: mongoose.Schema.Types.ObjectId,
-            },
-            vote : Number
-        },
-    ],
+    votes: {
+        type:Array,
+        default:[
+            {
+                userId:mongoose.Types.ObjectId('5fd6f9207814c42fe8b4069d'),
+                vote:8
+
+            }
+        ]
+    },
     categories: [{ type : mongoose.Schema.Types.ObjectId, ref: 'category' }],
     actors: [{ type : mongoose.Schema.Types.ObjectId, ref: 'actor' }],
     countries: [{ type : mongoose.Schema.Types.ObjectId, ref: 'country' }],
@@ -63,3 +65,15 @@ const productSchema = new mongoose.Schema({
 }, {timestamps: true})
 
 module.exports = mongoose.model('Product', productSchema)
+// [
+//     {
+//         userId: {
+//             type: mongoose.Schema.Types.ObjectId,
+//             default:'12345'
+//         },
+//         vote : {
+//             type:Number,
+//             default:8
+//         }
+//     }
+// ]

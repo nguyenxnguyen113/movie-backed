@@ -47,10 +47,10 @@ exports.signin = (req, res) => {
                 const token = jwt.sign(
                     { _id: user._id, userName: user.userName, email: user.email, avatar: user.avatar },
                     process.env.JWT_SECRET,
-                    { expiresIn: "30s" }
+                    { expiresIn: "1d" }
                 );
                 const { _id, userName, email, role, avatar } = user;
-                res.cookie("token", token, { expiresIn: "30s" });
+                res.cookie("token", token, { expiresIn: "1d" });
                 res.status(200).json({
                     token,
                     user: { _id, userName, email, role, avatar },

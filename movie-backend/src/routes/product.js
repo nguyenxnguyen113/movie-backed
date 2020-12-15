@@ -1,4 +1,5 @@
 const express = require("express");
+const axios = require('axios')
 // const {  } = require('../controller/category')
 const { requireSignin, adminMiddleware } = require("../common-middleware");
 const { createProduct, getProduct, deleteProductById, getProductById, updateProductById, getProductByQuery, vote,createComment,getComment } = require("../controller/product");
@@ -27,10 +28,29 @@ router.post(
 );
 router.get('/product/getProduct', getProduct)
 router.delete("/product/deleteProductById", requireSignin, adminMiddleware, deleteProductById);
-router.get("/product/getProductById/:id", getProductById);
+router.get("/product/getProductById", getProductById);
 router.post("/product/editProductById/:id", requireSignin, adminMiddleware, updateProductById);
-router.post("/product/getProductByQuery/", getProductByQuery);
+router.get("/product/getProductByQuery/", getProductByQuery);
 router.post("/product/vote", vote);
 router.post("/product/comment",requireSignin,createComment)
 router.get("/product/comment",getComment)
+router.post("/product/streamTape/getTicket",(req,res)=>{
+  const {key} = req.body
+  console.log(key);
+  axios.get(`https://api.streamtape.com/file/dlticket?file=${key}&login=d78dd8c9336754386cf7&key=8OqW6PzL7Vio7ad`).then((response)=>{
+    console.log(response.data);
+    setTimeout(()=>{
+      console.log(response.data);
+      res.status(200).json(response.data)
+    },5000)
+  })
+
+})
+router.post('/product/streamTape/getlink', (req, res) => {
+  const { ticket, key } = req.body
+  console.log(ticket);
+  axios.get(`https://api.streamtape.com/file/dl?file=${key}&ticket=${ticket}`).then((response) => {
+    res.status(200).json(response.data)
+  })
+})
 module.exports = router;

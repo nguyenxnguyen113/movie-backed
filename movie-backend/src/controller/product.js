@@ -51,6 +51,7 @@ exports.getProduct = async (req, res) => {
 
 exports.getProductByQuery = async (req, res) => {
   const { limit, page, actor, category, year, sort } = req.query;
+  console.log(limit);
   const all = await Product.find({}).count()
   console.log(all);
   const arrProduct = []
@@ -131,6 +132,7 @@ exports.getProductByQuery = async (req, res) => {
 
 exports.vote = (req, res) => {
   const { idFilm, idUser, vote } = req.body
+  console.log(req.body);
   Product.update(
     {
       _id: mongoose.Types.ObjectId(idFilm),
@@ -146,32 +148,33 @@ exports.vote = (req, res) => {
   }
   ).exec((err, product) => {
     if (err) {
-      console.log(err);
       return res.status(400).json({ err: err })
     }
     if (product) {
+      console.log(product);
       console.log(product.n);
       if (product.n <= 0) {
         Product.updateOne(
           { _id: mongoose.Types.ObjectId(idFilm) },
-          { $push: { votes: { userId: idUser, vote: vote } } }
+          { $push: { votes: { userId: mongoose.Types.ObjectId(idUser), vote: vote } } }
         ).exec((err, result) => {
           if (err) {
             return res.status(400).json({ err: err })
           }
-          if (result) {
-            console.log(result)
+           else if (result) {
             return res.status(200).json({ message: "vote successfully" })
           }
         })
       }
-      return res.status(200).json({message:"update vote successfully"})
+      else {
+        return res.status(200).json({message:"update vote successfully"})
+      }
     }
   })
 }
 
 exports.getProductById = (req, res) => {
-  const id = mongoose.Types.ObjectId(req.params.id)
+  const id = mongoose.Types.ObjectId(req.query.id)
   Product.aggregate(
     [
       {
@@ -184,7 +187,7 @@ exports.getProductById = (req, res) => {
           from: 'categories',
           localField: 'categories',
           foreignField: '_id',
-          as: 'lookupNameCategories'
+          as: 'categories'
         }
       },
       {
@@ -192,7 +195,7 @@ exports.getProductById = (req, res) => {
           from: 'actors',
           localField: 'actors',
           foreignField: '_id',
-          as: 'lookupNameActors'
+          as: 'actors'
         }
       },
       {
@@ -200,24 +203,42 @@ exports.getProductById = (req, res) => {
           from: 'countries',
           localField: 'countries',
           foreignField: '_id',
-          as: 'lookupNameCountries'
+          as: 'countries'
+        }
+      },
+      {
+        $unwind: "$votes"
+      },
+      {
+        $group: {
+          _id: "$_id",
+          categories: { "$first": "$categories" },
+          country: { "$first": "$countries" },
+          actors: { "$first": "$actors" },
+          name: { "$first": "$name" },
+          ename: { "$first": "$ename" },
+          slug: { "$first": "$slug" },
+          img: { "$first": "$img" },
+          largerImg: { "$first": "$largerImg" },
+          description: { "$first": "$description" },
+          url: { "$first": "$url" },
+          streamTapeId:{"$first":"$streamTapeId"},
+          comments: { "$first": "$comments" },
+          createdAt: { "$first": "$createdAt" },
+          updatedAt: { "$first": "$updatedAt" },
+          voteLength: { "$sum": 1 },
+          sumVotes: { "$sum": "$votes.vote" },
         }
       },
       {
         $addFields: {
-          nameCategories: "$lookupNameCategories.name",
-          nameCountries: "$lookupNameCountries.name",
-          nameActors: "$lookupNameActors.name"
-        }
-      },
-      {
-        $project: {
-          lookupNameActors: 0,
-          lookupNameCountries: 0,
-          lookupNameCategories: 0
+          "averageVote": {
+            "$divide": ["$sumVotes", "$voteLength"]
+          }
         }
       }
     ])
+    
     .then(product => res.json(product[0]))
     .catch(err => res.status(400).json('Error: ' + err));
 };
@@ -286,6 +307,13 @@ exports.getComment = (req, res) => {
       }
     },
     {
+      $project:{
+        "comments":{
+          $reverseArray:"$comments"
+        }
+      }
+    },
+    {
       $unwind: {
         path:"$comments"
       }
@@ -314,11 +342,11 @@ exports.getComment = (req, res) => {
     {
       $project:{
         "comments.user.hash_password":0,
-        "comments.userId":0
+        "comments.userId":0, 
       }
     }
   ]
-  pipleline.splice(2,0,{
+  pipleline.splice(3,0,{
     $limit: parseInt(limit)
   })
   Product.aggregate(pipleline).exec((err,comment)=>{
@@ -328,7 +356,7 @@ exports.getComment = (req, res) => {
         console.log(comment);
         res.status(200).json({comments: comment[0].comments})
       }
-      else res.status(400).json({message:"id is not correct"})
+      else res.status(200).json({comments:[]})
     }
   })
 }
