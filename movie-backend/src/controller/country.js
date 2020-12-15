@@ -22,6 +22,18 @@ exports.addCountry = (req, res) => {
   });
 };
 
+exports.getAllCountry = async (req, res) => {
+
+  Country.find({}).exec((error, countries) => {
+    if (error) {
+      return res.status(400).json({ error });
+    }
+    if (countries) {
+      return res.status(200).json({ countries });
+    }
+  });
+};
+
 exports.getCountry = async (req, res) => {
   console.log(req.query);
   const {limit} = req.query
