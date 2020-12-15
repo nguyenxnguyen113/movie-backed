@@ -35,8 +35,8 @@ router.post("/product/vote", vote);
 router.post("/product/comment",requireSignin,createComment)
 router.get("/product/comment",getComment)
 router.post("/product/searchFilm",searchFilm)
-router.post("/product/streamTape/getTicket",(req,res)=>{
-  const {key} = req.body
+router.get("/product/streamTape/getTicket",(req,res)=>{
+  const {key} = req.query
   console.log(key);
   axios.get(`https://api.streamtape.com/file/dlticket?file=${key}&login=d78dd8c9336754386cf7&key=8OqW6PzL7Vio7ad`).then((response)=>{
     console.log(response.data);
@@ -47,8 +47,9 @@ router.post("/product/streamTape/getTicket",(req,res)=>{
   })
 
 })
-router.post('/product/streamTape/getlink', (req, res) => {
-  const { ticket, key } = req.body
+router.get('/product/streamTape/getlink', (req, res) => {
+  const { ticket, key } = req.query
+  console.log(req.query);
   console.log(ticket);
   axios.get(`https://api.streamtape.com/file/dl?file=${key}&ticket=${ticket}`).then((response) => {
     res.status(200).json(response.data)

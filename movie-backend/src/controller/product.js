@@ -37,23 +37,35 @@ exports.createProduct = (req, res) => {
 };
 
 exports.getProduct = async (req, res) => {
-  const all = await Product.find({}).countDocuments()
-  console.log(all);
-  Product.find({}).exec((error, products) => {
+  const PAGE_SIZE = 3;
+  const page = parseInt(req.query.page || "0");
+  const total = await Product.countDocuments({});
+  Product.find({}).limit(PAGE_SIZE).skip(PAGE_SIZE * page).exec((error, products) => {
     if (error) {
       return res.status(400).json({ error });
     }
     if (products) {
-      return res.status(200).json({ total:all,products });
+      return res.status(200).json({ totalPages: Math.ceil(total / PAGE_SIZE), products });
     }
   });
 };
 
 exports.getProductByQuery = async (req, res) => {
   const { limit, page, actor, category, year, sort ,country } = req.query;
-  console.log(limit);
+  let _year = undefined
+  let _category = undefined
+  let _country = undefined
+  if(category!=="default"&&category!==""){
+    _category = category
+  }
+  if(country!=="default"&&country!==""){
+    _country = country
+  }
+  if(year !== "default" && year!== ""){
+    _year = year
+  }
+  console.log(req.query);
   const all = await Product.find({}).count()
-  console.log(all);
   const arrProduct = []
   if (sort == "date") {
     arrProduct.push({
@@ -111,17 +123,17 @@ exports.getProductByQuery = async (req, res) => {
   if (actor) {
     arrProduct.push({ $match: { actors: mongoose.Types.ObjectId(actor) } })
   }
-  if (category) {
-    arrProduct.push({ $match: { categories: mongoose.Types.ObjectId(category) } })
+  if (_category!==undefined) {
+    arrProduct.push({ $match: { categories: mongoose.Types.ObjectId(_category) } })
   }
-  if (country){
-    arrProduct.push({ $match: { countries: mongoose.Types.ObjectId(country) } })
+  if (_country){
+    arrProduct.push({ $match: { countries: mongoose.Types.ObjectId(_country) } })
   }
-  if (year) {
-    arrProduct.push({ $match: { year: parseInt(year) } })
+  if (_year) {
+    arrProduct.push({ $match: { year: parseInt(_year) } })
   }
   arrProduct.push(...getAverageVote)
-  console.log(arrProduct)
+  console.log(arrProduct);
   await Product.aggregate(arrProduct).exec((err, products) => {
     if (err) {
       return res.status(400).json({ err: err })
@@ -135,7 +147,6 @@ exports.getProductByQuery = async (req, res) => {
 
 exports.vote = (req, res) => {
   const { idFilm, idUser, vote } = req.body
-  console.log(req.body);
   Product.update(
     {
       _id: mongoose.Types.ObjectId(idFilm),
@@ -154,8 +165,6 @@ exports.vote = (req, res) => {
       return res.status(400).json({ err: err })
     }
     if (product) {
-      console.log(product);
-      console.log(product.n);
       if (product.n <= 0) {
         Product.updateOne(
           { _id: mongoose.Types.ObjectId(idFilm) },
@@ -231,6 +240,10 @@ exports.getProductById = (req, res) => {
           updatedAt: { "$first": "$updatedAt" },
           voteLength: { "$sum": 1 },
           sumVotes: { "$sum": "$votes.vote" },
+        // $addFields: {
+        //   nameCategories: "$lookupNameCategories.name",
+        //   nameCountries: "$lookupNameCountries.name",
+        //   nameActors: "$lookupNameActors.name, $lookupNameActors.avatar",
         }
       },
       {
@@ -283,7 +296,6 @@ exports.updateProductById = (req, res) => {
 
 exports.createComment = (req, res) => {
   const { id, userId, comment } = req.body
-  console.log(req.body);
   product.updateOne(
     {
       _id: mongoose.Types.ObjectId(id)
@@ -303,7 +315,6 @@ exports.createComment = (req, res) => {
 }
 exports.getComment = (req, res) => {
   const {id,limit} = req.query;
-  console.log(id);
   const pipleline = [
     {
       $match:{
@@ -357,7 +368,6 @@ exports.getComment = (req, res) => {
     if(err) res.status(500).json({message:"server error"})
     else {
       if(comment.length>0){
-        console.log(comment);
         res.status(200).json({comments: comment[0].comments})
       }
       else res.status(200).json({comments:[]})
