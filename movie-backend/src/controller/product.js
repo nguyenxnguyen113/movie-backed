@@ -37,14 +37,15 @@ exports.createProduct = (req, res) => {
 };
 
 exports.getProduct = async (req, res) => {
-  const all = await Product.find({}).countDocuments()
-  console.log(all);
-  Product.find({}).exec((error, products) => {
+  const PAGE_SIZE = 3;
+  const page = parseInt(req.query.page || "0");
+  const total = await Product.countDocuments({});
+  Product.find({}).limit(PAGE_SIZE).skip(PAGE_SIZE * page).exec((error, products) => {
     if (error) {
       return res.status(400).json({ error });
     }
     if (products) {
-      return res.status(200).json({ total:all,products });
+      return res.status(200).json({ totalPages: Math.ceil(total / PAGE_SIZE), products });
     }
   });
 };
@@ -207,7 +208,7 @@ exports.getProductById = (req, res) => {
         $addFields: {
           nameCategories: "$lookupNameCategories.name",
           nameCountries: "$lookupNameCountries.name",
-          nameActors: "$lookupNameActors.name"
+          nameActors: "$lookupNameActors.name, $lookupNameActors.avatar",
         }
       },
       {
