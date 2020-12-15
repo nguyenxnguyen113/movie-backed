@@ -30,3 +30,16 @@ exports.getCategory = (req, res) => {
     }
   });
 };
+exports.deleteCategoryById = (req, res) => {
+  const { categoryId } = req.body.payload;
+  if (categoryId) {
+    Category.deleteOne({ _id: categoryId }).exec((error, result) => {
+      if (error) return res.status(400).json({ error });
+      if (result) {
+        res.status(202).json({ result });
+      }
+    });
+  } else {
+    res.status(400).json({ error: "Params required" });
+  }
+};

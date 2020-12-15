@@ -236,7 +236,7 @@ exports.deleteProductById = (req, res) => {
 };
 
 exports.updateProductById = (req, res) => {
-  Product.findById(req.params.id)
+  Product.findById(mongoose.Types.ObjectId(req.params.id))
     .then(product => {
       product.name = req.body.name;
       product.ename = req.body.ename;
@@ -248,6 +248,7 @@ exports.updateProductById = (req, res) => {
       product.url = req.body.url;
       product.streamTapeId = req.streamTapeId;
       product.img = req.body.img;
+      product.streamTapeId = req.body.streamTapeId;
       product.largerImg = req.body.largerImg;
       product.year = req.body.year;
       product.save()
