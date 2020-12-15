@@ -2,7 +2,7 @@ const express = require("express");
 const axios = require('axios')
 // const {  } = require('../controller/category')
 const { requireSignin, adminMiddleware } = require("../common-middleware");
-const { createProduct, getProduct, deleteProductById, getProductById, updateProductById, getProductByQuery, vote,createComment,getComment } = require("../controller/product");
+const { createProduct, getProduct, deleteProductById, getProductById, updateProductById, getProductByQuery, vote,createComment,getComment, searchFilm } = require("../controller/product");
 const multer = require("multer");
 const shortid = require("shortid");
 const path = require("path");
@@ -34,6 +34,7 @@ router.get("/product/getProductByQuery/", getProductByQuery);
 router.post("/product/vote", vote);
 router.post("/product/comment",requireSignin,createComment)
 router.get("/product/comment",getComment)
+router.post("/product/searchFilm",searchFilm)
 router.post("/product/streamTape/getTicket",(req,res)=>{
   const {key} = req.body
   console.log(key);

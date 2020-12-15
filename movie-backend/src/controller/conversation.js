@@ -8,13 +8,16 @@ exports.postConversation = (req, res) => {
     console.log(req.body);
 }
 
-exports.getAllConversation = (req, res) => {
+exports.getAllConversation = async (req, res) => {
+    const all = await conversation.find({}).countDocuments()
     const { limit } = req.query
-    let pipleline = [ {
-        $sort:{
-            createdAt:-1
+    let pipleline = [
+        {
+            $sort: {
+                createdAt: -1
+            }
         }
-    }]
+    ]
     if (limit) pipleline.push(
         {
             $limit: parseInt(limit)
@@ -39,6 +42,11 @@ exports.getAllConversation = (req, res) => {
     console.log(pipleline);
     conversation.aggregate(pipleline).exec((err, con) => {
         if (err) res.status(500).json({ message: "server error" })
-        else res.status(200).json(con)
+        else {
+            res.status(200).json({
+                total:all,
+                data:con
+            })
+        }
     })
 }

@@ -50,7 +50,7 @@ exports.getProduct = async (req, res) => {
 };
 
 exports.getProductByQuery = async (req, res) => {
-  const { limit, page, actor, category, year, sort } = req.query;
+  const { limit, page, actor, category, year, sort ,country } = req.query;
   console.log(limit);
   const all = await Product.find({}).count()
   console.log(all);
@@ -113,6 +113,9 @@ exports.getProductByQuery = async (req, res) => {
   }
   if (category) {
     arrProduct.push({ $match: { categories: mongoose.Types.ObjectId(category) } })
+  }
+  if (country){
+    arrProduct.push({ $match: { countries: mongoose.Types.ObjectId(country) } })
   }
   if (year) {
     arrProduct.push({ $match: { year: parseInt(year) } })
@@ -360,4 +363,8 @@ exports.getComment = (req, res) => {
       else res.status(200).json({comments:[]})
     }
   })
+}
+
+exports.searchFilm = (res,req)=>{
+    console.log(req.body);
 }
