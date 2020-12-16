@@ -62,41 +62,12 @@ exports.getProduct = async (req, res) => {
 
 exports.getProductByQuery = async (req, res) => {
   const { limit, page, actor, category, year, sort ,country } = req.query;
+  console.log(req.query);
   let _year = undefined
   let _category = undefined
   let _country = undefined
-  if(category!=="default"&&category!==""){
-    _category = category
-  }
-  if(country!=="default"&&country!==""){
-    _country = country
-  }
-  if(year !== "default" && year!== ""){
-    _year = year
-  }
-  console.log(req.query);
   const all = await Product.find({}).count()
   const arrProduct = []
-  if (sort == "date") {
-    arrProduct.push({
-      $sort: {
-        cratedAt: -1
-      }
-    })
-  }
-  if (sort == "vote") {
-    arrProduct.push({
-      $sort: {
-        cratedAt: -1
-      }
-    })
-  }
-  if (page && limit) {
-    arrProduct.push({ $skip: limit * (page - 1) })
-  }
-  if (limit) {
-    arrProduct.push({ $limit: parseInt(limit) })
-  }
   let getAverageVote = [
     {
       $unwind: "$votes"
@@ -128,8 +99,37 @@ exports.getProductByQuery = async (req, res) => {
           "$divide": ["$sumVotes", "$voteLength"]
         }
       }
+    },
+    {
+      $addFields:{
+        "averageVote":{ $round: [ "$averageVote", 1 ] }
+      }
     }
   ]
+  if(category!=="default"&&category!==""){
+    _category = category
+  }
+  if(country!=="default"&&country!==""){
+    _country = country
+  }
+  if(year !== "default" && year!== ""){
+    _year = year
+  }
+  
+  if (sort == "date") {
+    arrProduct.push({
+      $sort: {
+        cratedAt: -1
+      }
+    })
+  }
+  if (page && limit) {
+    arrProduct.push({ $skip: limit * (page - 1) })
+  }
+  if (limit) {
+    arrProduct.push({ $limit: parseInt(limit) })
+  }
+
   if (actor) {
     arrProduct.push({ $match: { actors: mongoose.Types.ObjectId(actor) } })
   }
@@ -143,7 +143,14 @@ exports.getProductByQuery = async (req, res) => {
     arrProduct.push({ $match: { year: parseInt(_year) } })
   }
   arrProduct.push(...getAverageVote)
-  console.log(arrProduct);
+  if (sort == "vote") {
+    arrProduct.push({
+      $sort: {
+        "averageVote": -1
+      }
+    })
+  }
+  // console.log(arrProduct);
   await Product.aggregate(arrProduct).exec((err, products) => {
     if (err) {
       return res.status(400).json({ err: err })
@@ -261,6 +268,11 @@ exports.getProductById = (req, res) => {
           "averageVote": {
             "$divide": ["$sumVotes", "$voteLength"]
           }
+        }
+      },
+      {
+        $addFields:{
+          "averageVote":{ $round: [ "$averageVote", 1 ] }
         }
       }
     ])
@@ -386,9 +398,7 @@ exports.getComment = (req, res) => {
 }
 
 exports.searchFilm = (req,res)=>{
-  console.log(req.body);
   let regex = new RegExp(slugify(req.body.data))
-  console.log(regex);
   product.find({'slug':regex}).exec((err,film)=>{
     if(err) res.status(500).json({message:"server error"})
     else res.status(200).json(film)
